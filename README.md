@@ -1,5 +1,4 @@
 # DocSpot-Seamless-Appointment-Booking-for-Health
-<<<<<<< HEAD
 MERN STACK project 
 
 Introduction  :
