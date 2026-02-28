@@ -1,4 +1,5 @@
 # DocSpot-Seamless-Appointment-Booking-for-Health
+<<<<<<< HEAD
 MERN STACK project 
 
 Introduction  :
@@ -294,3 +295,6 @@ Integration Testing
  Real-time UI updates 
  Data consistency 
 All core functionalities were validated successfully. 
+=======
+DocSpot-Seamless-Appointment-Booking-for-Health
+>>>>>>> 96b27d8407be0f39609795fcab5113f48ef04107
