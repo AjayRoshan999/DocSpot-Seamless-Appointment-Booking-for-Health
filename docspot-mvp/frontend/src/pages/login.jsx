@@ -1,54 +1,26 @@
-import React, { useState } from 'react';
-import API from '../services/api';
-import { useNavigate } from 'react-router-dom';
-import jwt_decode from 'jwt-decode';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Doctors from './Doctors';
+import MyAppointments from './MyAppointments';
+import Login from './login';
+import Register from './Register';
+import Home from './Home';
+import UserDashboard from './UserDashboard';
+import DoctorDashboard from './DoctorDashboard';
 
-const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const navigate = useNavigate();
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await API.post('/auth/login', { email, password });
-
-      const token = res.data.token;
-      localStorage.setItem('token', token);
-
-      const decoded = jwt_decode(token);
-      const role = decoded.role;
-
-      if (role === 'doctor') {
-        navigate('/doctor-dashboard');
-      } else {
-        navigate('/user-dashboard');
-      }
-    } catch (err) {
-      console.error('Login failed:', err);
-      alert('Invalid credentials!');
-    }
-  };
-
+function App() {
   return (
-    <form onSubmit={handleLogin}>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">Login</button>
-    </form>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/Login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/doctors" element={<Doctors />} />
+        <Route path="/appointments" element={<MyAppointments />} />
+        <Route path="/user-dashboard" element={<UserDashboard />} /> {/* ✅ Add this route */}
+        <Route path="/doctor-dashboard" element={<DoctorDashboard />} /> {/* ✅ Add this route */}
+      </Routes>
+    </Router>
   );
-};
+}
 
-export default Login;
+export default App;

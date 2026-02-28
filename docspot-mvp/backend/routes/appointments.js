@@ -7,6 +7,7 @@ const { auth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
+// ✅ Setup file upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, '..', 'uploads'));
@@ -18,14 +19,19 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+
 // ✅ Book appointment
 router.post('/', auth, upload.single('document'), async (req, res) => {
   try {
     const { doctorId, slotStart } = req.body;
-    if (!doctorId || !slotStart) return res.status(400).json({ message: 'Missing fields' });
+    if (!doctorId || !slotStart) {
+      return res.status(400).json({ message: 'Missing fields' });
+    }
 
     const doctor = await Doctor.findById(doctorId);
-    if (!doctor || !doctor.approved) return res.status(400).json({ message: 'Invalid doctor' });
+    if (!doctor || !doctor.approved) {
+      return res.status(400).json({ message: 'Invalid doctor' });
+    }
 
     const appt = await Appointment.create({
       customer: req.user._id,
@@ -36,17 +42,18 @@ router.post('/', auth, upload.single('document'), async (req, res) => {
 
     res.status(201).json(appt);
   } catch (err) {
+    console.error('Booking error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// ✅ Fetch appointments for logged-in user
+
+// ✅ Fetch appointments for logged-in user or doctor
 router.get('/mine', auth, async (req, res) => {
   try {
     const { role } = req.user;
 
     if (role === 'doctor') {
-      // doctor sees appointments for their patients
       const doc = await Doctor.findOne({ user: req.user._id });
       if (!doc) return res.json([]);
       const appts = await Appointment.find({ doctor: doc._id })
@@ -54,29 +61,27 @@ router.get('/mine', auth, async (req, res) => {
         .sort('-createdAt');
       return res.json(appts);
     } else {
-      // customer sees their own appointments
       const appts = await Appointment.find({ customer: req.user._id })
-        .populate('doctor')
+        .populate('doctor', 'name specialization')
         .sort('-createdAt');
       return res.json(appts);
     }
   } catch (err) {
+    console.error('Fetch error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // ✅ Update appointment status
 router.patch('/:id/status', auth, async (req, res) => {
   try {
     const { status } = req.body;
     const appt = await Appointment.findById(req.params.id).populate('doctor');
-    if (!appt) return res.status(404).json({ message: 'Not found' });
+    if (!appt) return res.status(404).json({ message: 'Appointment not found' });
 
     const doc = await Doctor.findById(appt.doctor);
-    if (!doc) return res.status(403).json({ message: 'Forbidden' });
-
-    // allow doctor or admin to change
-    if (req.user.role !== 'admin' && String(doc.user) !== String(req.user._id)) {
+    if (!doc || String(doc.user) !== String(req.user._id)) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
@@ -84,6 +89,7 @@ router.patch('/:id/status', auth, async (req, res) => {
     await appt.save();
     res.json(appt);
   } catch (err) {
+    console.error('Status update error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
